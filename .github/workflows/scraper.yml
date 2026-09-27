@@ -1,0 +1,53 @@
+name: TCGPlayer Alerts
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tcgplayer-alerts
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore persistent alert state
+        uses: actions/cache/restore@v4
+        with:
+          path: tcg-alert-bot/data/state.sqlite3
+          key: tcg-alert-state-${{ github.run_id }}
+          restore-keys: |
+            tcg-alert-state-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tcg-alert-bot/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r tcg-alert-bot/requirements.txt
+
+      - name: Run scraper
+        working-directory: tcg-alert-bot
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          BUNDLE_MIN_SAVING: "5"
+        run: python -m src.main
+
+      - name: Save persistent alert state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: tcg-alert-bot/data/state.sqlite3
+          key: tcg-alert-state-${{ github.run_id }}

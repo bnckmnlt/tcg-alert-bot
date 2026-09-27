@@ -1,0 +1,132 @@
+{
+  "watchlist": [
+    {
+      "name": "Pikachu",
+      "set_name": "SM - Burning Shadows",
+      "url": "https://www.tcgplayer.com/product/138522/pokemon-sm-burning-shadows-pikachu?Language=English&Condition=Near+Mint&page=1&Printing=Reverse+Holofoil",
+      "target_price": 6.00,
+      "quantity_needed": 1,
+      "min_condition": "Near Mint",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "Hidden Fates",
+      "url": "https://www.tcgplayer.com/product/197663/pokemon-hidden-fates-pikachu?Language=English&Printing=Reverse+Holofoil&page=1&Condition=Near+Mint",
+      "target_price": 5.00,
+      "quantity_needed": 1,
+      "min_condition": "Near Mint",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "SWSH01: Sword & Shield Base Set",
+      "url": "https://www.tcgplayer.com/product/208362/pokemon-swsh01-sword-and-shield-base-set-pikachu?Language=English&Printing=Reverse+Holofoil%7CReverse+Holofoil&page=1&Condition=Near+Mint",
+      "target_price": 2.00,
+      "quantity_needed": 1,
+      "min_condition": "Near Mint",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "SM - Crimson Invasion",
+      "url": "https://www.tcgplayer.com/product/149053/pokemon-sm-crimson-invasion-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
+      "target_price": 8.00,
+      "quantity_needed": 1,
+      "min_condition": "Lightly Played",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "SM - Unbroken Bonds",
+      "url": "https://www.tcgplayer.com/product/189153/pokemon-sm-unbroken-bonds-pikachu?Language=English&Printing=Reverse+Holofoil&page=1&Condition=Lightly+Played",
+      "target_price": 4.00,
+      "quantity_needed": 1,
+      "min_condition": "Lightly Played",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "XY - Evolutions",
+      "url": "https://www.tcgplayer.com/product/124048/pokemon-xy-evolutions-pikachu?Language=English&Condition=Near+Mint%7CNear+Mint&page=1&Printing=Reverse+Holofoil",
+      "target_price": 3.00,
+      "quantity_needed": 1,
+      "min_condition": "Near Mint",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu",
+      "set_name": "Generations",
+      "url": "https://www.tcgplayer.com/product/113684/pokemon-generations-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
+      "target_price": 8.00,
+      "quantity_needed": 1,
+      "min_condition": "Lightly Played",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    },
+    {
+      "name": "Pikachu (56)",
+      "set_name": "SM - Unified Minds",
+      "url": "https://www.tcgplayer.com/product/194982/pokemon-sm-unified-minds-pikachu-56?Language=English&Condition=Near+Mint&page=1&Printing=Reverse+Holofoil",
+      "target_price": 16.00,
+      "quantity_needed": 1,
+      "min_condition": "Near Mint",
+      "language": "English",
+      "printing": "Reverse Holofoil",
+      "price_drop_percent": 10,
+      "deal_score_threshold": 70,
+      "enabled": true,
+      "tags": [
+        "priority"
+      ]
+    }
+  ]
+}

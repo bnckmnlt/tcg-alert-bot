@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+data/state.sqlite3
+.pytest_cache/
+.coverage
