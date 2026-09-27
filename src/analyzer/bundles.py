@@ -66,16 +66,16 @@ def best_watchlist_bundle(
                     )
                     for c in combo
                 )
-                product_total = sum(x.unit_landed for x in lines)
+                product_total = sum(x.listing.price for x in lines)
                 separate_shipping = sum(x.listing.shipping for x in lines)
-                # TCGPlayer charges one seller-level shipping amount for an order,
-                # so using the largest displayed per-line shipping is a conservative
-                # estimate until the cart itself is queried.
+                # TCGPlayer shipping is seller/order-level in practice. Until we
+                # query the cart, use the largest displayed line shipping as an
+                # estimate for the combined order.
                 bundle_shipping = max((x.listing.shipping for x in lines), default=0.0)
                 shipping_saving = max(0.0, separate_shipping - bundle_shipping)
                 market_total = sum(_reference(target_cards, x.listing) for x in lines)
-                purchase_saving = max(0.0, market_total - product_total)
-                total = product_total
+                total = product_total + bundle_shipping
+                purchase_saving = max(0.0, market_total - total)
                 score = purchase_saving + shipping_saving * 1.5 + size * 2
                 candidates.append(
                     Bundle(

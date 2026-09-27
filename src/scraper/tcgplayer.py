@@ -333,7 +333,6 @@ class TCGPlayerScraper:
             (
                 ".listing-item__listing-data__listo__see-more[href]",
                 "a[href*='/product/']",
-                "a[href]",
             ),
             "href",
         ) or source_url
