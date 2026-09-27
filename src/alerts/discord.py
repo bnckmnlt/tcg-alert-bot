@@ -49,8 +49,10 @@ def deal(score: DealScore) -> dict:
         {"name": "🚚 Shipping", "value": _money(l.shipping), "inline": True},
         {"name": "📦 Quantity", "value": str(l.quantity), "inline": True},
         {"name": "⭐ Seller", "value": _seller(l), "inline": True},
-        {"name": "🎯 Price", "value": "{:.0f}/100".format(score.price_score), "inline": True},
-        {"name": "🏪 Seller", "value": "{:.0f}/100".format(score.seller_score), "inline": True},
+        {"name": "🎯 Price score", "value": "{:.0f}/100".format(score.price_score), "inline": True},
+        {"name": "🚚 Shipping score", "value": "{:.0f}/100".format(score.shipping_score), "inline": True},
+        {"name": "⭐ Seller score", "value": "{:.0f}/100".format(score.seller_score), "inline": True},
+        {"name": "📦 Quantity score", "value": "{:.0f}/100".format(score.quantity_score), "inline": True},
         {"name": "📈 Market", "value": _money(l.market_price) if l.market_price else "n/a", "inline": True},
     ], l.url)
 
