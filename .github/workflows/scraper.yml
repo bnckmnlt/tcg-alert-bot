@@ -23,7 +23,7 @@ jobs:
       - name: Restore persistent alert state
         uses: actions/cache/restore@v4
         with:
-          path: tcg-alert-bot/data/state.sqlite3
+          path: data/state.sqlite3
           key: tcg-alert-state-${{ github.run_id }}
           restore-keys: |
             tcg-alert-state-
@@ -33,13 +33,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: tcg-alert-bot/requirements.txt
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
-        run: pip install -r tcg-alert-bot/requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Run scraper
-        working-directory: tcg-alert-bot
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           BUNDLE_MIN_SAVING: "5"
@@ -49,5 +48,5 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: tcg-alert-bot/data/state.sqlite3
+          path: data/state.sqlite3
           key: tcg-alert-state-${{ github.run_id }}
