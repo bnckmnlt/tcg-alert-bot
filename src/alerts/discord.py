@@ -18,13 +18,25 @@ def _seller(listing: Listing) -> str:
     count = "" if listing.seller.rating_count is None else " • {:,} sales".format(listing.seller.rating_count)
     return "{} ({}{})".format(listing.seller.name, rating, count)
 
+def _display_name(listing: Listing) -> str:
+    """Return a human-friendly card name that distinguishes watchlist variants."""
+    parts = [listing.card_name]
+    if listing.set_name:
+        parts.append(listing.set_name)
+    if listing.condition:
+        parts.append(listing.condition)
+    if listing.printing:
+        parts.append(listing.printing)
+    return " — ".join(parts)
+
+
 def _embed(title: str, description: str, kind: str, fields: list[dict], url: str | None = None) -> dict:
     embed = {
         "title": "{}  •  {}".format(kind.replace("_", " "), title),
         "description": description,
         "color": COLORS[kind],
         "fields": fields,
-        "footer": {"text": "TCGPlayer Alert Bot • price + shipping + quantity + seller weighted"},
+        "footer": {"text": "Meowth's Market • price + shipping + quantity + seller weighted"},
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if url:
@@ -33,7 +45,7 @@ def _embed(title: str, description: str, kind: str, fields: list[dict], url: str
 
 def price_drop(signal: PriceSignal) -> dict:
     l = signal.listing
-    return _embed(l.card_name, "**{:.1f}% below** the recent observed landed price.".format(signal.discount_percent), "PRICE_DROP", [
+    return _embed(_display_name(l), "**{:.1f}% below** the recent observed landed price.".format(signal.discount_percent), "PRICE_DROP", [
         {"name": "💵 Price", "value": _money(l.price), "inline": True},
         {"name": "🚚 Shipping", "value": _money(l.shipping), "inline": True},
         {"name": "🧮 Landed", "value": _money(l.landed_unit_price), "inline": True},
@@ -44,7 +56,7 @@ def price_drop(signal: PriceSignal) -> dict:
 
 def deal(score: DealScore) -> dict:
     l = score.listing
-    return _embed(l.card_name, "**Deal score {:.0f}/100** • {:.1f}% below baseline.".format(score.score, score.discount_percent), "DEAL", [
+    return _embed(_display_name(l), "**Deal score {:.0f}/100** • {:.1f}% below baseline.".format(score.score, score.discount_percent), "DEAL", [
         {"name": "💵 Landed price", "value": _money(l.landed_unit_price), "inline": True},
         {"name": "🚚 Shipping", "value": _money(l.shipping), "inline": True},
         {"name": "📦 Quantity", "value": str(l.quantity), "inline": True},
@@ -59,7 +71,7 @@ def deal(score: DealScore) -> dict:
 def stock_change(listing: Listing, previous_quantity: int) -> dict:
     delta = listing.quantity - previous_quantity
     direction = "increased" if delta > 0 else "dropped"
-    return _embed(listing.card_name, "Quantity **{} by {}** since the previous check.".format(direction, abs(delta)), "STOCK_CHANGE", [
+    return _embed(_display_name(listing), "Quantity **{} by {}** since the previous check.".format(direction, abs(delta)), "STOCK_CHANGE", [
         {"name": "📦 Previous", "value": str(previous_quantity), "inline": True},
         {"name": "📦 Current", "value": str(listing.quantity), "inline": True},
         {"name": "💵 Landed", "value": _money(listing.landed_unit_price), "inline": True},
@@ -67,7 +79,7 @@ def stock_change(listing: Listing, previous_quantity: int) -> dict:
     ], listing.url)
 
 def bundle(bundle: Bundle) -> dict:
-    lines = "\n".join("• [{}]({}) — {}".format(x.card_name, x.listing.url, _money(x.unit_landed)) for x in bundle.lines)
+    lines = "\n".join("• [{} — {}]({}) — {}".format(x.card_name, x.listing.set_name or "Unknown set", x.listing.url, _money(x.unit_landed)) for x in bundle.lines)
     embed = _embed("{} cards from {}".format(len(bundle.lines), bundle.seller_name), lines, "BUNDLE", [
         {"name": "🛒 Combined purchase", "value": _money(bundle.total), "inline": True},
         {"name": "💰 Purchase savings", "value": _money(bundle.purchase_saving), "inline": True},
@@ -81,7 +93,7 @@ def send_embeds(embeds: Iterable[dict]) -> None:
     if not webhook:
         raise RuntimeError("DISCORD_WEBHOOK_URL is not configured")
     response = requests.post(webhook, json={
-        "username": "TCG Alert Bot",
+        "username": "Meowth's Market",
         "allowed_mentions": {"parse": []},
         "embeds": list(embeds),
     }, timeout=20)
