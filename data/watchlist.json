@@ -2,22 +2,6 @@
   "watchlist": [
     {
       "name": "Pikachu",
-      "set_name": "SWSH01: Sword & Shield Base Set",
-      "url": "https://www.tcgplayer.com/product/208362/pokemon-swsh01-sword-and-shield-base-set-pikachu?Language=English&Printing=Reverse+Holofoil%7CReverse+Holofoil&page=1&Condition=Near+Mint",
-      "target_price": 2.0,
-      "quantity_needed": 1,
-      "min_condition": "Near Mint",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
-      "name": "Pikachu",
       "set_name": "SM - Crimson Invasion",
       "url": "https://www.tcgplayer.com/product/149053/pokemon-sm-crimson-invasion-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
       "target_price": 8.0,
