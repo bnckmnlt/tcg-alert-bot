@@ -2,22 +2,6 @@
   "watchlist": [
     {
       "name": "Pikachu",
-      "set_name": "XY - Evolutions",
-      "url": "https://www.tcgplayer.com/product/124048/pokemon-xy-evolutions-pikachu?Language=English&Condition=Near+Mint%7CNear+Mint&page=1&Printing=Reverse+Holofoil",
-      "target_price": 3.0,
-      "quantity_needed": 1,
-      "min_condition": "Near Mint",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
-      "name": "Pikachu",
       "set_name": "Generations",
       "url": "https://www.tcgplayer.com/product/113684/pokemon-generations-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
       "target_price": 8.0,
