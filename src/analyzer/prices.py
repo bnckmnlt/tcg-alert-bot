@@ -36,6 +36,15 @@ def discount_percent(price: float, reference: Optional[float]) -> float:
     return (1 - price / reference) * 100
 
 
+def historical_stats(prices: Iterable[float]) -> tuple[Optional[float], Optional[float], Optional[float]]:
+    """Return (median, average, low) for positive historical landed prices."""
+    values = sorted(float(price) for price in prices if price and float(price) > 0)
+    if not values:
+        return None, None, None
+    average = sum(values) / len(values)
+    return round(median(values), 2), round(average, 2), round(values[0], 2)
+
+
 def price_signal(
     listing: Listing,
     baseline: Optional[float],

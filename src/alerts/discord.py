@@ -74,6 +74,7 @@ def deal(score: DealScore) -> dict:
         {"name": "⭐ Seller score", "value": "{:.0f}/100".format(score.seller_score), "inline": True},
         {"name": "📦 Quantity score", "value": "{:.0f}/100".format(score.quantity_score), "inline": True},
         {"name": "📈 Market", "value": _money(l.market_price) if l.market_price else "n/a", "inline": True},
+        {"name": "🧠 Trigger", "value": score.reason, "inline": False},
     ], l.url)
 
 def stock_change(listing: Listing, previous_quantity: int) -> dict:

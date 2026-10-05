@@ -1,6 +1,6 @@
 from src.analyzer.bundles import best_watchlist_bundle
 from src.analyzer.deals import score_deal
-from src.analyzer.prices import robust_baseline
+from src.analyzer.prices import historical_stats, robust_baseline
 from src.models.listing import Listing
 from src.models.seller import Seller
 from src.scraper.tcgplayer import _label_value, _quantity, _rating
@@ -36,6 +36,10 @@ def listing(
 
 def test_baseline_uses_median():
     assert robust_baseline([listing("A", 10), listing("A", 11), listing("A", 12)]) == 11
+
+
+def test_historical_stats_returns_median_average_and_low():
+    assert historical_stats([10, 12, 14]) == (12.0, 12.0, 10.0)
 
 
 def test_deal_prefers_low_landed_price():

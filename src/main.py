@@ -17,7 +17,7 @@ from .alerts.discord import (
 )
 from .analyzer.bundles import best_watchlist_bundle
 from .analyzer.deals import score_deal
-from .analyzer.prices import PriceSignal, robust_baseline
+from .analyzer.prices import PriceSignal, historical_stats, robust_baseline
 from .models.listing import Listing
 from .scraper.selenium import Browser
 from .scraper.tcgplayer import TCGPlayerScraper
@@ -94,6 +94,17 @@ def db() -> sqlite3.Connection:
             observed_at TEXT NOT NULL
         )"""
     )
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS price_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            listing_id TEXT NOT NULL,
+            card_key TEXT NOT NULL,
+            landed_price REAL NOT NULL,
+            market_price REAL,
+            observed_at TEXT NOT NULL
+        )"""
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_price_history_card_time ON price_history(card_key, observed_at)")
     conn.execute("CREATE TABLE IF NOT EXISTS alerts (alert_key TEXT PRIMARY KEY, sent_at TEXT NOT NULL)")
     conn.execute(
         "CREATE TABLE IF NOT EXISTS active_alerts "
@@ -125,6 +136,18 @@ def previous(conn: sqlite3.Connection, listing_id: str):
         "SELECT price, shipping, quantity FROM observations WHERE listing_id=?",
         (listing_id,),
     ).fetchone()
+
+
+def history_stats(conn: sqlite3.Connection, card_key: str, days: int = 7):
+    rows = conn.execute(
+        """SELECT landed_price
+           FROM price_history
+           WHERE card_key=?
+             AND julianday(observed_at) >= julianday('now', ?)
+           ORDER BY observed_at DESC""",
+        (card_key, "-{} days".format(days)),
+    ).fetchall()
+    return historical_stats(row[0] for row in rows)
 
 
 def already_alerted(conn: sqlite3.Connection, key: str) -> bool:
@@ -172,6 +195,18 @@ def set_runtime_value(conn: sqlite3.Connection, key: str, value: str) -> None:
 
 
 def save_listing(conn: sqlite3.Connection, listing: Listing) -> None:
+    conn.execute(
+        "INSERT INTO price_history "
+        "(listing_id, card_key, landed_price, market_price, observed_at) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (
+            listing.listing_id,
+            listing.card_key,
+            listing.landed_unit_price,
+            listing.market_price,
+            listing.collected_at,
+        ),
+    )
     conn.execute(
         """INSERT OR REPLACE INTO observations
         (listing_id, card_name, seller_name, price, shipping, quantity,
@@ -270,18 +305,49 @@ def run() -> None:
                     )
                     continue
 
-                # target_price is a soft goal: it helps describe the desired
-                # buy level, but does not hide a listing that is still compelling
-                # relative to market/recent listings. Use max_price for a hard cap.
+                # max_price is an explicit alert trigger, while target_price
+                # remains descriptive. Additional triggers can be enabled per watchlist item.
                 hard_max = item.get("max_price")
                 hard_max = float(hard_max) if hard_max is not None else None
+                min_savings = float(item.get("min_savings", 0))
+                min_discount = float(item.get("min_discount_percent", 0))
+                history_days = max(1, int(item.get("history_days", 7)))
+                history_discount = float(item.get("history_discount_percent", 0))
                 preferred_quantity = max(1, int(item.get("quantity_needed", 1)))
 
                 for listing in sorted(listings, key=lambda x: x.landed_unit_price)[:10]:
-                    if hard_max is not None and listing.landed_unit_price > hard_max:
-                        continue
-
                     old = previous(conn, listing.listing_id)
+                    _history_median, history_average, _history_low = history_stats(
+                        conn, listing.card_key, history_days
+                    )
+                    reference = (
+                        listing.market_price
+                        if listing.market_price and listing.market_price > 0
+                        else baseline
+                    )
+                    savings = (
+                        max(0.0, reference - listing.landed_unit_price)
+                        if reference
+                        else 0.0
+                    )
+                    current_discount = (
+                        (1 - listing.landed_unit_price / reference) * 100
+                        if reference and reference > 0
+                        else 0.0
+                    )
+                    historical_discount = (
+                        (1 - listing.landed_unit_price / history_average) * 100
+                        if history_average and history_average > 0
+                        else 0.0
+                    )
+
+                    if hard_max is not None and listing.landed_unit_price <= hard_max:
+                        LOG.info(
+                            "Max-price trigger matched %s at %.2f <= %.2f",
+                            listing.card_name,
+                            listing.landed_unit_price,
+                            hard_max,
+                        )
                     if old:
                         old_landed = float(old[0]) + float(old[1])
                         drop_percent = (
@@ -313,8 +379,15 @@ def run() -> None:
                         preferred_quantity,
                         listing.market_price,
                     )
+                    max_price_match = hard_max is not None and listing.landed_unit_price <= hard_max
+                    savings_match = min_savings > 0 and savings >= min_savings
+                    discount_match = min_discount > 0 and current_discount >= min_discount
+                    history_match = history_discount > 0 and historical_discount >= history_discount
+                    score_match = score.score >= float(item.get("deal_score_threshold", 70))
+                    qualifies = max_price_match or savings_match or discount_match or history_match or score_match
+
                     deal_key = "DEAL:{}".format(listing.listing_id)
-                    if score.score >= float(item.get("deal_score_threshold", 70)):
+                    if qualifies:
                         if not active_alert(conn, deal_key):
                             embeds.append(deal_embed(score))
                             mark_alert(conn, deal_key, listing.collected_at)
