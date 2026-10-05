@@ -1,22 +1,6 @@
 {
   "watchlist": [
     {
-      "name": "Pikachu (56)",
-      "set_name": "SM - Unified Minds",
-      "url": "https://www.tcgplayer.com/product/194982/pokemon-sm-unified-minds-pikachu-56?Language=English&Condition=Near+Mint&page=1&Printing=Reverse+Holofoil",
-      "target_price": 16.0,
-      "quantity_needed": 1,
-      "min_condition": "Near Mint",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
       "name": "Pikachu - 5/12 - McDonald's Promos 2017 (M17)",
       "set_name": "McDonald's Promos 2017",
       "url": "https://www.tcgplayer.com/product/152685?page=1&Language=all&Printing=Holofoil&Condition=Near+Mint",
