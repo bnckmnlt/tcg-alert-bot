@@ -2,22 +2,6 @@
   "watchlist": [
     {
       "name": "Pikachu",
-      "set_name": "SM - Burning Shadows",
-      "url": "https://www.tcgplayer.com/product/138522/pokemon-sm-burning-shadows-pikachu?Language=English&Condition=Near+Mint&page=1&Printing=Reverse+Holofoil",
-      "target_price": 6.0,
-      "quantity_needed": 1,
-      "min_condition": "Near Mint",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
-      "name": "Pikachu",
       "set_name": "Hidden Fates",
       "url": "https://www.tcgplayer.com/product/197663/pokemon-hidden-fates-pikachu?Language=English&Printing=Reverse+Holofoil&page=1&Condition=Near+Mint",
       "target_price": 5.0,
