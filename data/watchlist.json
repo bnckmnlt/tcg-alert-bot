@@ -161,23 +161,6 @@
         "discord"
       ],
       "max_price": 18.0
-    },
-    {
-      "name": "Pikachu - 5/12 - McDonald's Promos 2017 (M17)",
-      "set_name": "McDonald's Promos 2017",
-      "url": "https://www.tcgplayer.com/product/152685?page=1&Language=all&Printing=Holofoil&Condition=Near+Mint",
-      "target_price": 17.0,
-      "quantity_needed": 1,
-      "min_condition": "Lightly Played",
-      "language": "English",
-      "printing": "",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "discord"
-      ],
-      "max_price": 18.0
     }
   ]
 }
