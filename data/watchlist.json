@@ -1,22 +1,6 @@
 {
   "watchlist": [
     {
-      "name": "Pikachu",
-      "set_name": "Generations",
-      "url": "https://www.tcgplayer.com/product/113684/pokemon-generations-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
-      "target_price": 8.0,
-      "quantity_needed": 1,
-      "min_condition": "Lightly Played",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
       "name": "Pikachu (56)",
       "set_name": "SM - Unified Minds",
       "url": "https://www.tcgplayer.com/product/194982/pokemon-sm-unified-minds-pikachu-56?Language=English&Condition=Near+Mint&page=1&Printing=Reverse+Holofoil",
