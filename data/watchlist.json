@@ -2,22 +2,6 @@
   "watchlist": [
     {
       "name": "Pikachu",
-      "set_name": "SM - Crimson Invasion",
-      "url": "https://www.tcgplayer.com/product/149053/pokemon-sm-crimson-invasion-pikachu?Language=English&Condition=Lightly+Played&page=1&Printing=Reverse+Holofoil",
-      "target_price": 8.0,
-      "quantity_needed": 1,
-      "min_condition": "Lightly Played",
-      "language": "English",
-      "printing": "Reverse Holofoil",
-      "price_drop_percent": 10,
-      "deal_score_threshold": 70,
-      "enabled": true,
-      "tags": [
-        "priority"
-      ]
-    },
-    {
-      "name": "Pikachu",
       "set_name": "SM - Unbroken Bonds",
       "url": "https://www.tcgplayer.com/product/189153/pokemon-sm-unbroken-bonds-pikachu?Language=English&Printing=Reverse+Holofoil&page=1&Condition=Lightly+Played",
       "target_price": 4.0,
