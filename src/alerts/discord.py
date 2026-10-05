@@ -2,13 +2,21 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from typing import Iterable
+import time
+
 import requests
 from ..analyzer.bundles import Bundle
 from ..analyzer.deals import DealScore
 from ..analyzer.prices import PriceSignal
 from ..models.listing import Listing
 
-COLORS = {"PRICE_DROP": 0x57F287, "DEAL": 0xFF6B35, "BUNDLE": 0x5865F2, "STOCK_CHANGE": 0xED4245}
+COLORS = {
+    "PRICE_DROP": 0x57F287,
+    "DEAL": 0xFF6B35,
+    "BUNDLE": 0x5865F2,
+    "STOCK_CHANGE": 0xED4245,
+    "HEALTH": 0xED4245,
+}
 
 def _money(value: float) -> str:
     return "$" + "{:,.2f}".format(value)
@@ -88,20 +96,45 @@ def bundle(bundle: Bundle) -> dict:
     ])
     return embed
 
+def health(failures: int, detail: str) -> dict:
+    return _embed(
+        "Scraper health warning",
+        "**{} consecutive scrape runs have had failures.**".format(failures),
+        "HEALTH",
+        [{"name": "Details", "value": detail[:1024], "inline": False}],
+    )
+
+
 def send_embeds(embeds: Iterable[dict]) -> None:
     webhook = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook:
         raise RuntimeError("DISCORD_WEBHOOK_URL is not configured")
-    response = requests.post(webhook, json={
+
+    payload = {
         "username": "Meowth's Market",
         "allowed_mentions": {"parse": []},
         "embeds": list(embeds),
-    }, timeout=20)
-    if not response.ok:
-        detail = response.text[:2000]
-        raise RuntimeError(
-            "Discord webhook rejected the payload (HTTP {}): {}".format(
-                response.status_code,
-                detail,
+    }
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            response = requests.post(webhook, json=payload, timeout=20)
+            if response.ok:
+                return
+            detail = response.text[:2000]
+            error = RuntimeError(
+                "Discord webhook rejected the payload (HTTP {}): {}".format(
+                    response.status_code,
+                    detail,
+                )
             )
-        )
+            if response.status_code < 500 and response.status_code != 429:
+                raise error
+            last_error = error
+        except requests.RequestException as exc:
+            last_error = exc
+
+        if attempt < 2:
+            time.sleep(2 ** attempt)
+
+    raise RuntimeError("Discord webhook failed after 3 attempts: {}".format(last_error))

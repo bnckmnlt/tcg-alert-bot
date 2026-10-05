@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sqlite3
+import time
 from pathlib import Path
 
 from .alerts.discord import (
@@ -12,6 +13,7 @@ from .alerts.discord import (
     price_drop,
     send_embeds,
     stock_change,
+    health as health_embed,
 )
 from .analyzer.bundles import best_watchlist_bundle
 from .analyzer.deals import score_deal
@@ -93,6 +95,14 @@ def db() -> sqlite3.Connection:
         )"""
     )
     conn.execute("CREATE TABLE IF NOT EXISTS alerts (alert_key TEXT PRIMARY KEY, sent_at TEXT NOT NULL)")
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS active_alerts "
+        "(alert_key TEXT PRIMARY KEY, active_at TEXT NOT NULL)"
+    )
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS runtime_state "
+        "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+    )
 
     # Migrate databases created by older versions.
     existing = {row[1] for row in conn.execute("PRAGMA table_info(observations)")}
@@ -128,6 +138,39 @@ def mark_alert(conn: sqlite3.Connection, key: str, now: str) -> None:
     )
 
 
+def active_alert(conn: sqlite3.Connection, key: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM active_alerts WHERE alert_key=?",
+        (key,),
+    ).fetchone() is not None
+
+
+def set_active_alert(conn: sqlite3.Connection, key: str, now: str) -> None:
+    conn.execute(
+        "INSERT OR REPLACE INTO active_alerts(alert_key, active_at) VALUES (?, ?)",
+        (key, now),
+    )
+
+
+def clear_active_alert(conn: sqlite3.Connection, key: str) -> None:
+    conn.execute("DELETE FROM active_alerts WHERE alert_key=?", (key,))
+
+
+def runtime_value(conn: sqlite3.Connection, key: str, default: str = "") -> str:
+    row = conn.execute(
+        "SELECT value FROM runtime_state WHERE key=?",
+        (key,),
+    ).fetchone()
+    return str(row[0]) if row else default
+
+
+def set_runtime_value(conn: sqlite3.Connection, key: str, value: str) -> None:
+    conn.execute(
+        "INSERT OR REPLACE INTO runtime_state(key, value) VALUES (?, ?)",
+        (key, value),
+    )
+
+
 def save_listing(conn: sqlite3.Connection, listing: Listing) -> None:
     conn.execute(
         """INSERT OR REPLACE INTO observations
@@ -155,24 +198,60 @@ def save_listing(conn: sqlite3.Connection, listing: Listing) -> None:
     )
 
 
+def _search_with_retry(
+    scraper: TCGPlayerScraper,
+    item: dict,
+    attempts: int = 3,
+) -> list[Listing]:
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            return scraper.search(
+                item["url"],
+                item["name"],
+                item.get("set_name"),
+                item,
+            )
+        except Exception as exc:
+            last_error = exc
+            LOG.warning(
+                "Scrape failed for %s (attempt %d/%d): %s",
+                item["name"],
+                attempt + 1,
+                attempts,
+                exc,
+            )
+            if attempt < attempts - 1:
+                time.sleep(2 ** attempt)
+    raise RuntimeError(
+        "Scrape failed after {} attempts for {}: {}".format(
+            attempts,
+            item["name"],
+            last_error,
+        )
+    )
+
+
 def run() -> None:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
     watchlist = [x for x in load_watchlist() if x.get("enabled", True)]
     conn = db()
     all_listings: list[Listing] = []
     embeds: list[dict] = []
+    failures: list[str] = []
+    health_alert_pending = False
 
     try:
         with Browser() as browser:
             scraper = TCGPlayerScraper(browser)
 
             for item in watchlist:
-                raw = scraper.search(
-                    item["url"],
-                    item["name"],
-                    item.get("set_name"),
-                    item,
-                )
+                try:
+                    raw = _search_with_retry(scraper, item)
+                except Exception as exc:
+                    failures.append("{}: {}".format(item["name"], exc))
+                    continue
+
                 listings = [x for x in raw if _matches_watchlist(x, item)]
 
                 if len(listings) != len(raw):
@@ -211,6 +290,7 @@ def run() -> None:
                             else 0
                         )
                         threshold = float(item.get("price_drop_percent", 10))
+                        alert_key = "PRICE_DROP:{}".format(listing.listing_id)
                         if drop_percent >= threshold:
                             signal = PriceSignal(
                                 listing=listing,
@@ -220,14 +300,12 @@ def run() -> None:
                                     drop_percent
                                 ),
                             )
-                            key = "PRICE_DROP:{}:{:.2f}:{:.2f}".format(
-                                listing.listing_id,
-                                listing.price,
-                                listing.shipping,
-                            )
-                            if not already_alerted(conn, key):
+                            if not active_alert(conn, alert_key):
                                 embeds.append(price_drop(signal))
-                                mark_alert(conn, key, listing.collected_at)
+                                mark_alert(conn, alert_key, listing.collected_at)
+                                set_active_alert(conn, alert_key, listing.collected_at)
+                        else:
+                            clear_active_alert(conn, alert_key)
 
                     score = score_deal(
                         listing,
@@ -235,15 +313,14 @@ def run() -> None:
                         preferred_quantity,
                         listing.market_price,
                     )
+                    deal_key = "DEAL:{}".format(listing.listing_id)
                     if score.score >= float(item.get("deal_score_threshold", 70)):
-                        key = "DEAL:{}:{:.2f}:{:.2f}".format(
-                            listing.listing_id,
-                            listing.price,
-                            listing.shipping,
-                        )
-                        if not already_alerted(conn, key):
+                        if not active_alert(conn, deal_key):
                             embeds.append(deal_embed(score))
-                            mark_alert(conn, key, listing.collected_at)
+                            mark_alert(conn, deal_key, listing.collected_at)
+                            set_active_alert(conn, deal_key, listing.collected_at)
+                    else:
+                        clear_active_alert(conn, deal_key)
 
                     if old:
                         old_qty = int(old[2])
@@ -289,10 +366,38 @@ def run() -> None:
                     now = all_listings[0].collected_at if all_listings else ""
                     mark_alert(conn, key, now)
 
+        if failures:
+            failure_count = int(runtime_value(conn, "consecutive_failures", "0")) + 1
+            set_runtime_value(conn, "consecutive_failures", str(failure_count))
+            LOG.error(
+                "Scrape completed with %d failed watchlist items (consecutive failed runs: %d)",
+                len(failures),
+                failure_count,
+            )
+            if failure_count >= 3 and runtime_value(conn, "failure_alerted", "0") != "1":
+                embeds.append(
+                    health_embed(
+                        failure_count,
+                        "\n".join("- " + failure for failure in failures),
+                    )
+                )
+                health_alert_pending = True
+        else:
+            set_runtime_value(conn, "consecutive_failures", "0")
+            set_runtime_value(conn, "failure_alerted", "0")
+
         conn.commit()
         for i in range(0, len(embeds), 10):
             send_embeds(embeds[i:i + 10])
-        LOG.info("Finished: %d listings, %d alerts", len(all_listings), len(embeds))
+        if health_alert_pending:
+            set_runtime_value(conn, "failure_alerted", "1")
+            conn.commit()
+        LOG.info(
+            "Finished: %d listings, %d alerts, %d scrape failures",
+            len(all_listings),
+            len(embeds),
+            len(failures),
+        )
     finally:
         conn.close()
 
